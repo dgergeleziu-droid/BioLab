@@ -9,8 +9,7 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -18,7 +17,7 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build app
+      - name: Build
         run: |
           xcodebuild -project BioLab.xcodeproj \
             -scheme BioLab \
@@ -36,8 +35,7 @@ jobs:
           cp -R build/Build/Products/Release-iphoneos/BioLab.app Payload/
           zip -r BioLab.ipa Payload
 
-      - name: Upload IPA
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: BioLab-ipa
           path: BioLab.ipa
