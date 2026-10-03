@@ -8,18 +8,18 @@ struct MicroscopeView: View {
     @State private var showNoResult = false
 
     var body: some View {
-        HStack(spacing: 0) {
+        GeometryReader { geo in
+            let h = geo.size.height
+            let lensSize = min(h - 50, 300)
 
-            // ─── Панель образцов (слева) ─────────────────────
-            VStack(alignment: .leading, spacing: 8) {
-                Text("ОБРАЗЦЫ")
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(1.5)
-                    .foregroundColor(Palette.textDim)
-                    .padding(.horizontal, 14)
+            HStack(spacing: 0) {
 
-                ScrollView(showsIndicators: false) {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                // ─── Образцы (слева) ────────────────────────
+                sidePanel(title: "ОБРАЗЦЫ") {
+                    LazyVGrid(
+                        columns: [GridItem(.flexible()), GridItem(.flexible())],
+                        spacing: 8
+                    ) {
                         ForEach(BioSample.all) { s in
                             ReagentChip(
                                 emoji: s.emoji,
@@ -34,76 +34,76 @@ struct MicroscopeView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.bottom, 14)
+                    .padding(.horizontal, 8)
                 }
-            }
-            .frame(width: 200)
-            .background(Palette.surface.opacity(0.4))
 
-            // ─── Линза микроскопа (центр) ────────────────────
-            ZStack {
-                // Круглая линза
-                Circle()
-                    .fill(Palette.surfaceHi)
-                    .frame(width: 340, height: 340)
-                    .overlay(Circle().stroke(Palette.stroke, lineWidth: 2))
-                    .shadow(color: Palette.green.opacity(0.3), radius: 30)
+                // ─── Центр — линза ──────────────────────────
+                VStack(spacing: 8) {
+                    Spacer()
 
-                Circle()
-                    .fill(Palette.background)
-                    .frame(width: 300, height: 300)
-                    .overlay(Circle().stroke(Palette.green.opacity(0.5), lineWidth: 2))
+                    ZStack {
+                        Circle()
+                            .fill(Palette.surfaceHi)
+                            .frame(width: lensSize, height: lensSize)
+                            .overlay(Circle().stroke(Palette.stroke, lineWidth: 2))
+                            .shadow(color: Palette.green.opacity(0.3), radius: 20)
 
-                // Содержимое линзы
-                MicroLensContent(sample: selectedSample, dye: selectedDye, result: observation)
-                    .frame(width: 290, height: 290)
-                    .clipShape(Circle())
+                        Circle()
+                            .fill(Palette.background)
+                            .frame(width: lensSize - 30, height: lensSize - 30)
+                            .overlay(Circle().stroke(Palette.green.opacity(0.5), lineWidth: 2))
 
-                // Блик
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.white.opacity(0.15), .clear],
-                            startPoint: .topLeading, endPoint: .center
+                        MicroLensContent(
+                            sample: selectedSample,
+                            dye: selectedDye,
+                            result: observation
                         )
-                    )
-                    .frame(width: 290, height: 290)
-                    .allowsHitTesting(false)
+                        .frame(width: lensSize - 38, height: lensSize - 38)
+                        .clipShape(Circle())
 
-                // Подпись
-                VStack {
-                    Spacer().frame(height: 380)
-                    if let s = selectedSample {
-                        Text(s.name)
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundColor(Palette.textPrimary)
-                        if let o = observation {
-                            Text(o.result)
-                                .font(.system(size: 12))
-                                .foregroundColor(Palette.greenLight)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 30)
-                        }
-                    } else {
-                        Text("Выберите образец")
-                            .font(.system(size: 13))
-                            .foregroundColor(Palette.textDim)
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.15), .clear],
+                                    startPoint: .topLeading, endPoint: .center
+                                )
+                            )
+                            .frame(width: lensSize - 38, height: lensSize - 38)
+                            .allowsHitTesting(false)
                     }
+
+                    // Подпись под линзой
+                    VStack(spacing: 2) {
+                        if let s = selectedSample {
+                            Text(s.name)
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .foregroundColor(Palette.textPrimary)
+                            if let o = observation {
+                                Text(o.result)
+                                    .font(.system(size: 10))
+                                    .foregroundColor(Palette.greenLight)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .padding(.horizontal, 20)
+                            }
+                        } else {
+                            Text("Выбери образец и краситель")
+                                .font(.system(size: 11))
+                                .foregroundColor(Palette.textDim)
+                        }
+                    }
+                    .frame(height: 32)
+
+                    Spacer()
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
 
-            // ─── Панель красителей (справа) ──────────────────
-            VStack(alignment: .leading, spacing: 8) {
-                Text("КРАСИТЕЛИ")
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(1.5)
-                    .foregroundColor(Palette.textDim)
-                    .padding(.horizontal, 14)
-
-                ScrollView(showsIndicators: false) {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                // ─── Красители (справа) ─────────────────────
+                sidePanel(title: "КРАСИТЕЛИ") {
+                    LazyVGrid(
+                        columns: [GridItem(.flexible()), GridItem(.flexible())],
+                        spacing: 8
+                    ) {
                         ForEach(Dye.all) { d in
                             ReagentChip(
                                 emoji: d.emoji,
@@ -118,43 +118,64 @@ struct MicroscopeView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.bottom, 14)
-                }
+                    .padding(.horizontal, 8)
 
-                // Кнопка "Сбросить"
-                Button {
-                    withAnimation {
-                        selectedSample = nil
-                        selectedDye = nil
-                        observation = nil
+                    // Сброс
+                    Button {
+                        withAnimation {
+                            selectedSample = nil
+                            selectedDye = nil
+                            observation = nil
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.system(size: 10))
+                            Text("Сбросить")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundColor(Palette.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(Palette.surface)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Palette.stroke, lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-                } label: {
-                    HStack {
-                        Image(systemName: "arrow.counterclockwise")
-                        Text("Сбросить")
-                    }
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Palette.textSecondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(Palette.surface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10).stroke(Palette.stroke, lineWidth: 1)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 8)
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 14)
             }
-            .frame(width: 200)
-            .background(Palette.surface.opacity(0.4))
         }
         .alert("Реакция не найдена", isPresented: $showNoResult) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Попробуйте другой краситель или образец.")
+            Text("Попробуй другой краситель или образец.")
         }
+    }
+
+    @ViewBuilder
+    private func sidePanel<Content: View>(
+        title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.system(size: 9, weight: .bold))
+                .tracking(1.2)
+                .foregroundColor(Palette.textDim)
+                .padding(.horizontal, 10)
+                .padding(.top, 6)
+
+            ScrollView(showsIndicators: false) {
+                content()
+                    .padding(.bottom, 8)
+            }
+        }
+        .frame(width: 170)
+        .background(Palette.surface.opacity(0.4))
     }
 
     private func checkObservation() {
@@ -168,37 +189,47 @@ struct MicroscopeView: View {
     }
 }
 
-// ─── Что показывается в линзе ─────────────────────────────────
-
 private struct MicroLensContent: View {
     let sample: BioSample?
     let dye: Dye?
     let result: Observation?
 
     var body: some View {
-        ZStack {
-            Circle().fill(sample?.color.opacity(0.10) ?? Color.clear)
+        GeometryReader { geo in
+            let side = geo.size.width
+            ZStack {
+                Circle().fill(sample?.color.opacity(0.10) ?? Color.clear)
 
-            if let s = sample {
-                let count = 12
-                ForEach(0..<count, id: \.self) { i in
-                    let row = i / 4
-                    let col = i % 4
-                    let step: CGFloat = 60
-                    let x = step * CGFloat(col) + step * 0.5 - 120
-                    let y = step * CGFloat(row) + step * 0.5 - 90
+                if let s = sample {
+                    let grid = 4
+                    let step = side / CGFloat(grid)
 
-                    CellView(
-                        baseColor: s.color,
-                        dyeColor: result?.effect == .blue ? Color.blue :
-                                  result?.effect == .red  ? Color.red  :
-                                  result?.effect == .purple ? Color.purple :
-                                  result?.effect == .green ? Palette.chloro : nil,
-                        size: 52
-                    )
-                    .offset(x: x, y: y)
+                    ForEach(0..<(grid * grid), id: \.self) { i in
+                        let row = i / grid
+                        let col = i % grid
+                        let x = step * CGFloat(col) + step * 0.5 - side / 2
+                        let y = step * CGFloat(row) + step * 0.5 - side / 2
+
+                        CellView(
+                            baseColor: s.color,
+                            dyeColor: dyeColorFrom(result),
+                            size: step * 0.7
+                        )
+                        .offset(x: x, y: y)
+                    }
                 }
             }
+        }
+    }
+
+    private func dyeColorFrom(_ r: Observation?) -> Color? {
+        guard let e = r?.effect else { return nil }
+        switch e {
+        case .blue:   return Color.blue
+        case .red:    return Color.red
+        case .purple: return Color.purple
+        case .green:  return Palette.chloro
+        case .gold:   return Palette.gold
         }
     }
 }
@@ -210,18 +241,16 @@ private struct CellView: View {
 
     var body: some View {
         ZStack {
-            // Мембрана
             Circle()
                 .fill(baseColor.opacity(0.55))
-                .overlay(Circle().stroke(baseColor.opacity(0.9), lineWidth: 1.2))
+                .overlay(Circle().stroke(baseColor.opacity(0.9), lineWidth: 1))
                 .frame(width: size, height: size)
 
-            // Ядро — если есть краситель
             if let dye = dyeColor {
                 Circle()
                     .fill(dye.opacity(0.85))
                     .frame(width: size * 0.32, height: size * 0.32)
-                    .shadow(color: dye.opacity(0.7), radius: 6)
+                    .shadow(color: dye.opacity(0.7), radius: 4)
             }
         }
     }
