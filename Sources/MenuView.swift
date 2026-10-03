@@ -19,12 +19,15 @@ struct MenuView: View {
                 Palette.background.ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 12) {
+                    LazyVGrid(
+                        columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
+                        spacing: 10
+                    ) {
                         ForEach(items, id: \.0) { item in
                             MenuRow(title: item.0, icon: item.1, tint: item.2)
                         }
                     }
-                    .padding(20)
+                    .padding(16)
                 }
             }
             .navigationTitle("Меню")
@@ -33,6 +36,7 @@ struct MenuView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Закрыть") { dismiss() }
                         .foregroundColor(Palette.green)
+                        .font(.system(size: 13, weight: .semibold))
                 }
             }
         }
@@ -45,29 +49,26 @@ private struct MenuRow: View {
     let tint: Color
 
     var body: some View {
-        HStack(spacing: 14) {
+        VStack(spacing: 8) {
             ZStack {
-                Circle().fill(tint.opacity(0.18)).frame(width: 46, height: 46)
+                Circle().fill(tint.opacity(0.18)).frame(width: 40, height: 40)
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(tint)
             }
 
             Text(title)
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundColor(Palette.textPrimary)
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(Palette.textDim)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
         }
-        .padding(14)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
         .background(Palette.surface)
         .overlay(
-            RoundedRectangle(cornerRadius: 16).stroke(Palette.stroke, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 14).stroke(Palette.stroke, lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }
