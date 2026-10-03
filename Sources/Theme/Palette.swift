@@ -17,31 +17,35 @@ extension Color {
     }
 }
 
+/// Палитра BioLab — тёмная с зелёным акцентом
 enum Palette {
-    // Фон — тёмный «микроскопный» с зелёным отливом
+    // Фон
     static let background   = Color(hex: "#0E1512")
     static let backgroundHi = Color(hex: "#141E19")
     static let surface      = Color(hex: "#1B2822")
     static let surfaceHi    = Color(hex: "#243830")
     static let stroke       = Color(hex: "#2E453B")
 
-    // Зелёный (природа, органеллы)
+    // Зелёный (главный акцент)
     static let green        = Color(hex: "#34D399")
     static let greenDark    = Color(hex: "#059669")
     static let greenLight   = Color(hex: "#6EE7B7")
-
-    // Циан (вода, цитоплазма)
     static let cyan         = Color(hex: "#22D3EE")
 
-    // Акценты для органелл
-    static let nucleus      = Color(hex: "#8B5CF6")   // ядро — фиолетовое
-    static let mito         = Color(hex: "#F59E0B")   // митохондрия — оранжевая
-    static let chloro       = Color(hex: "#10B981")   // хлоропласт — зелёный
-    static let ribosome     = Color(hex: "#EC4899")   // рибосома — розовая
-    static let membrane     = Color(hex: "#60A5FA")   // мембрана — голубая
+    // Цвета органелл
+    static let nucleus      = Color(hex: "#8B5CF6")   // ядро
+    static let mito         = Color(hex: "#F59E0B")   // митохондрия
+    static let chloro       = Color(hex: "#10B981")   // хлоропласт
+    static let ribosome     = Color(hex: "#EC4899")   // рибосома
+    static let membrane     = Color(hex: "#60A5FA")   // мембрана
+
+    // Статусы
+    static let danger       = Color(hex: "#EF4444")
+    static let warning      = Color(hex: "#F59E0B")
+    static let gold         = Color(hex: "#FBBF24")
 
     // Текст
-    static let textPrimary  = Color(hex: "#F1F5F9")
+    static let textPrimary   = Color(hex: "#F1F5F9")
     static let textSecondary = Color(hex: "#A1A9B3")
-    static let textDim      = Color(hex: "#6B7280")
+    static let textDim       = Color(hex: "#6B7280")
 }
