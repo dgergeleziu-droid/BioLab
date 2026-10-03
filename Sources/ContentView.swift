@@ -1,15 +1,27 @@
 import SwiftUI
 
+enum BioMode: String, CaseIterable, Identifiable {
+    case microscope = "Микроскоп"
+    case exam       = "ОГЭ"
+    case classifier = "Определитель"
+    case petri      = "Чашка Петри"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .microscope: return "eye.fill"
+        case .exam:       return "doc.text.fill"
+        case .classifier: return "list.bullet.indent"
+        case .petri:      return "circle.grid.cross.fill"
+        }
+    }
+}
+
 struct ContentView: View {
 
-    @State private var showMicroscope = false
-    @State private var showCellViewer = false
-    @State private var showDNA = false
-
-    private let columns = [
-        GridItem(.flexible(), spacing: 14),
-        GridItem(.flexible(), spacing: 14)
-    ]
+    @State private var mode: BioMode = .microscope
+    @State private var showMenu = false
 
     var body: some View {
         NavigationStack {
@@ -20,80 +32,93 @@ struct ContentView: View {
                 )
                 .ignoresSafeArea()
 
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 0) {
+                VStack(spacing: 0) {
 
-                        HStack {
-                            MDLogo()
-                            Spacer()
+                    // ─── Шапка ────────────────────────────────────
+                    HStack {
+                        MDLogo()
+
+                        Spacer()
+
+                        // Переключатель режимов
+                        HStack(spacing: 4) {
+                            ForEach(BioMode.allCases) { m in
+                                ModeTab(mode: m, isActive: mode == m) {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                        mode = m
+                                    }
+                                }
+                            }
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 12)
 
-                        Spacer().frame(height: 24)
+                        Spacer()
 
-                        Text("Welcome to the lab")
-                            .font(.system(size: 28, weight: .heavy, design: .rounded))
-                            .foregroundColor(Palette.textPrimary)
-                            .padding(.horizontal, 20)
-
-                        Text("Pick an experiment and start exploring life.")
-                            .font(.system(size: 14))
-                            .foregroundColor(Palette.textSecondary)
-                            .padding(.horizontal, 20)
-                            .padding(.top, 4)
-
-                        Spacer().frame(height: 22)
-
-                        LazyVGrid(columns: columns, spacing: 14) {
-                            ModuleCard(module: .microscope) { showMicroscope = true }
-                            ModuleCard(module: .cellViewer) { showCellViewer = true }
-                            ModuleCard(module: .dna)        { showDNA = true }
-                            ComingSoonCard()
+                        // Кнопка меню
+                        Button {
+                            showMenu = true
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Palette.green)
+                                .frame(width: 38, height: 38)
+                                .background(Palette.surface)
+                                .overlay(
+                                    Circle().stroke(Palette.stroke, lineWidth: 1)
+                                )
+                                .clipShape(Circle())
                         }
-                        .padding(.horizontal, 20)
-
-                        Spacer().frame(height: 30)
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Palette.background.opacity(0.9))
+
+                    // ─── Контент режима ───────────────────────────
+                    Group {
+                        switch mode {
+                        case .microscope: MicroscopeView()
+                        case .exam:       ExamView()
+                        case .classifier: ClassifierView()
+                        case .petri:      PetriDishView()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .navigationBarHidden(true)
-            .navigationDestination(isPresented: $showMicroscope) { MicroscopeView() }
-            .navigationDestination(isPresented: $showCellViewer) { CellViewerView() }
-            .navigationDestination(isPresented: $showDNA)        { DNAView() }
+        }
+        .sheet(isPresented: $showMenu) {
+            MenuView()
         }
     }
 }
 
-private struct ComingSoonCard: View {
+private struct ModeTab: View {
+    let mode: BioMode
+    let isActive: Bool
+    let action: () -> Void
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Palette.textDim.opacity(0.15))
-                    .frame(width: 56, height: 56)
-                Image(systemName: "hourglass")
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(Palette.textDim)
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: mode.icon)
+                    .font(.system(size: 12, weight: .semibold))
+                Text(mode.rawValue)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
             }
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Genetics")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundColor(Palette.textSecondary)
-                Text("Punnett squares — soon")
-                    .font(.system(size: 12))
-                    .foregroundColor(Palette.textDim)
-            }
-            Spacer(minLength: 0)
+            .foregroundColor(isActive ? Palette.textPrimary : Palette.textSecondary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(
+                Capsule()
+                    .fill(isActive ? Palette.green.opacity(0.22) : Palette.surface)
+            )
+            .overlay(
+                Capsule().stroke(
+                    isActive ? Palette.green.opacity(0.6) : Palette.stroke,
+                    lineWidth: 1
+                )
+            )
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(Palette.surface.opacity(0.5))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(Palette.stroke, lineWidth: 1)
-                .opacity(0.5)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .buttonStyle(.plain)
     }
 }
