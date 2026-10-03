@@ -1,7 +1,6 @@
 import SwiftUI
 
 /// Персональная подпись — для любимой Анютки от Демьяна.
-/// Используется в шапке главного экрана.
 struct MDLogo: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -14,12 +13,10 @@ struct MDLogo: View {
                             startPoint: .leading, endPoint: .trailing
                         )
                     )
-
                 Image(systemName: "heart.fill")
                     .font(.system(size: 11))
                     .foregroundColor(Color(hex: "#F472B6"))
             }
-
             Text("от Демьяна")
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundColor(Palette.textDim)
