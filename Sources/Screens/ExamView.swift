@@ -20,84 +20,86 @@ struct ExamView: View {
                     showAnswer = false; finished = false
                 }
             } else {
-                VStack(spacing: 20) {
+                GeometryReader { geo in
+                    let h = geo.size.height
 
-                    // Прогресс
-                    HStack(spacing: 12) {
-                        Text("Вопрос \(index + 1) из \(questions.count)")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(Palette.textSecondary)
-                        Spacer()
-                        Text("Очки: \(score)")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(Palette.green)
-                    }
-                    .padding(.horizontal, 30)
-                    .padding(.top, 12)
+                    VStack(spacing: 8) {
 
-                    ProgressView(value: Double(index), total: Double(questions.count))
-                        .tint(Palette.green)
-                        .padding(.horizontal, 30)
-
-                    Spacer().frame(height: 6)
-
-                    // Вопрос
-                    Text(questions[index].question)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundColor(Palette.textPrimary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-
-                    Spacer().frame(height: 10)
-
-                    // Варианты
-                    VStack(spacing: 10) {
-                        ForEach(Array(questions[index].options.enumerated()), id: \.offset) { i, opt in
-                            OptionRow(
-                                text: opt,
-                                state: optionState(i),
-                                action: {
-                                    guard selected == nil else { return }
-                                    selected = i
-                                    if i == questions[index].correctIndex { score += 1 }
-                                }
-                            )
+                        // Прогресс
+                        HStack(spacing: 10) {
+                            Text("Вопрос \(index + 1) / \(questions.count)")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Palette.textSecondary)
+                            Spacer()
+                            Text("Очки: \(score)")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(Palette.green)
                         }
-                    }
-                    .padding(.horizontal, 40)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 6)
 
-                    Spacer()
+                        ProgressView(value: Double(index), total: Double(questions.count))
+                            .tint(Palette.green)
+                            .padding(.horizontal, 20)
 
-                    // Кнопка "Далее" / "Показать решение"
-                    HStack(spacing: 12) {
-                        if selected != nil && !showAnswer {
-                            Button("Показать решение") { showAnswer = true }
-                                .buttonStyle(SecondaryButton())
-                        }
-
-                        Button(showAnswer || selected == nil ? "Далее" : "Дальше") {
-                            if index + 1 < questions.count {
-                                index += 1
-                                selected = nil
-                                showAnswer = false
-                            } else {
-                                finished = true
-                            }
-                        }
-                        .buttonStyle(PrimaryButton())
-                        .disabled(selected == nil)
-                    }
-                    .padding(.bottom, 20)
-
-                    // Объяснение
-                    if showAnswer {
-                        Text(questions[index].explanation)
-                            .font(.system(size: 13))
-                            .foregroundColor(Palette.textSecondary)
+                        // Вопрос
+                        Text(questions[index].question)
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundColor(Palette.textPrimary)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                            .padding(.bottom, 20)
-                            .transition(.opacity)
+                            .lineLimit(3)
+                            .padding(.horizontal, 30)
+                            .padding(.vertical, 4)
+
+                        // Варианты — компактнее
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: 6) {
+                                ForEach(Array(questions[index].options.enumerated()), id: \.offset) { i, opt in
+                                    OptionRow(
+                                        text: opt,
+                                        state: optionState(i),
+                                        action: {
+                                            guard selected == nil else { return }
+                                            selected = i
+                                            if i == questions[index].correctIndex { score += 1 }
+                                        }
+                                    )
+                                }
+                            }
+                            .padding(.horizontal, 30)
+                        }
+
+                        // Объяснение (если показано)
+                        if showAnswer {
+                            Text(questions[index].explanation)
+                                .font(.system(size: 11))
+                                .foregroundColor(Palette.textSecondary)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(3)
+                                .padding(.horizontal, 30)
+                                .transition(.opacity)
+                        }
+
+                        // Кнопки
+                        HStack(spacing: 10) {
+                            if selected != nil && !showAnswer {
+                                Button("Показать решение") { showAnswer = true }
+                                    .buttonStyle(SecondaryButton())
+                            }
+
+                            Button(showAnswer || selected == nil ? "Далее" : "Дальше") {
+                                if index + 1 < questions.count {
+                                    index += 1
+                                    selected = nil
+                                    showAnswer = false
+                                } else {
+                                    finished = true
+                                }
+                            }
+                            .buttonStyle(PrimaryButton())
+                            .disabled(selected == nil)
+                        }
+                        .padding(.bottom, 8)
                     }
                 }
             }
@@ -115,8 +117,6 @@ struct ExamView: View {
     }
 }
 
-// ─── Строка варианта ─────────────────────────────────────────
-
 struct OptionRow: View {
     enum State { case idle, selected, correct, wrong }
 
@@ -128,21 +128,25 @@ struct OptionRow: View {
         Button(action: action) {
             HStack {
                 Text(text)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(color)
+                    .lineLimit(2)
                 Spacer()
                 if state == .correct {
                     Image(systemName: "checkmark.circle.fill").foregroundColor(Palette.green)
+                        .font(.system(size: 14))
                 } else if state == .wrong {
                     Image(systemName: "xmark.circle.fill").foregroundColor(Palette.danger)
+                        .font(.system(size: 14))
                 }
             }
-            .padding(14)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .background(background)
             .overlay(
-                RoundedRectangle(cornerRadius: 12).stroke(border, lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 10).stroke(border, lineWidth: 1.4)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
     }
@@ -174,14 +178,12 @@ struct OptionRow: View {
     }
 }
 
-// ─── Кнопки ───────────────────────────────────────────────────
-
 struct PrimaryButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 14, weight: .bold, design: .rounded))
+            .font(.system(size: 12, weight: .bold, design: .rounded))
             .foregroundColor(.white)
-            .padding(.horizontal, 24).padding(.vertical, 12)
+            .padding(.horizontal, 18).padding(.vertical, 9)
             .background(Palette.green)
             .clipShape(Capsule())
             .opacity(configuration.isPressed ? 0.8 : 1)
@@ -191,16 +193,14 @@ struct PrimaryButton: ButtonStyle {
 struct SecondaryButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 14, weight: .semibold, design: .rounded))
+            .font(.system(size: 12, weight: .semibold, design: .rounded))
             .foregroundColor(Palette.textPrimary)
-            .padding(.horizontal, 20).padding(.vertical, 12)
+            .padding(.horizontal, 16).padding(.vertical, 9)
             .background(Palette.surface)
             .overlay(Capsule().stroke(Palette.stroke, lineWidth: 1))
             .clipShape(Capsule())
     }
 }
-
-// ─── Результат ───────────────────────────────────────────────
 
 struct ResultsView: View {
     let score: Int
@@ -218,43 +218,48 @@ struct ResultsView: View {
 
     private var message: String {
         switch mark {
-        case "2": return "Попробуй ещё раз — у тебя получится!"
-        case "3": return "Уже неплохо! Продолжай тренироваться."
-        case "4": return "Хорошо! Немного доработать — и будет отлично."
+        case "2": return "Попробуй ещё — у тебя получится!"
+        case "3": return "Неплохо! Продолжай тренироваться."
+        case "4": return "Хорошо! Немного доработать."
         default:  return "Отлично! Ты знаешь биологию!"
         }
     }
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Результат")
-                .font(.system(size: 22, weight: .heavy, design: .rounded))
-                .foregroundColor(Palette.textPrimary)
-
+        HStack(spacing: 24) {
+            // Оценка
             ZStack {
-                Circle().fill(Palette.green.opacity(0.15)).frame(width: 140, height: 140)
-                Circle().stroke(Palette.green, lineWidth: 3).frame(width: 140, height: 140)
-                VStack {
+                Circle().fill(Palette.green.opacity(0.15)).frame(width: 120, height: 120)
+                Circle().stroke(Palette.green, lineWidth: 3).frame(width: 120, height: 120)
+                VStack(spacing: 0) {
                     Text(mark)
-                        .font(.system(size: 56, weight: .heavy, design: .rounded))
+                        .font(.system(size: 44, weight: .heavy, design: .rounded))
                         .foregroundColor(Palette.green)
-                    Text("оценка").font(.system(size: 11)).foregroundColor(Palette.textSecondary)
+                    Text("оценка")
+                        .font(.system(size: 10))
+                        .foregroundColor(Palette.textSecondary)
                 }
             }
 
-            Text("Правильных: \(score) из \(total)")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(Palette.textPrimary)
+            // Текст
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Результат")
+                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .foregroundColor(Palette.textPrimary)
 
-            Text(message)
-                .font(.system(size: 13))
-                .foregroundColor(Palette.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+                Text("Правильных: \(score) из \(total)")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Palette.textPrimary)
 
-            Button("Пройти заново", action: onRetry)
-                .buttonStyle(PrimaryButton())
-                .padding(.top, 10)
+                Text(message)
+                    .font(.system(size: 12))
+                    .foregroundColor(Palette.textSecondary)
+                    .lineLimit(2)
+
+                Button("Пройти заново", action: onRetry)
+                    .buttonStyle(PrimaryButton())
+            }
         }
+        .padding(24)
     }
 }
