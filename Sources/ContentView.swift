@@ -24,67 +24,82 @@ struct ContentView: View {
     @State private var showMenu = false
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                LinearGradient(
-                    colors: [Palette.background, Palette.backgroundHi],
-                    startPoint: .top, endPoint: .bottom
-                )
-                .ignoresSafeArea()
+        ZStack {
+            LinearGradient(
+                colors: [Palette.background, Palette.backgroundHi],
+                startPoint: .top, endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-                VStack(spacing: 0) {
+            VStack(spacing: 0) {
 
-                    // ─── Шапка ────────────────────────────────────
-                    HStack {
-                        MDLogo()
-
-                        Spacer()
-
-                        // Переключатель режимов
+                // ─── Верхняя панель (компактная) ────────────────
+                HStack(spacing: 8) {
+                    // Подпись слева — сжатая
+                    VStack(alignment: .leading, spacing: 1) {
                         HStack(spacing: 4) {
-                            ForEach(BioMode.allCases) { m in
-                                ModeTab(mode: m, isActive: mode == m) {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                        mode = m
-                                    }
+                            Text("Для любимой Анютки")
+                                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Palette.greenLight, Palette.green],
+                                        startPoint: .leading, endPoint: .trailing
+                                    )
+                                )
+                            Image(systemName: "heart.fill")
+                                .font(.system(size: 9))
+                                .foregroundColor(Color(hex: "#F472B6"))
+                        }
+                        Text("от Демьяна")
+                            .font(.system(size: 9, weight: .medium, design: .rounded))
+                            .foregroundColor(Palette.textDim)
+                    }
+
+                    Spacer()
+
+                    // Табы режимов — компактные
+                    HStack(spacing: 4) {
+                        ForEach(BioMode.allCases) { m in
+                            ModeTab(mode: m, isActive: mode == m) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    mode = m
                                 }
                             }
                         }
-
-                        Spacer()
-
-                        // Кнопка меню
-                        Button {
-                            showMenu = true
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(Palette.green)
-                                .frame(width: 38, height: 38)
-                                .background(Palette.surface)
-                                .overlay(
-                                    Circle().stroke(Palette.stroke, lineWidth: 1)
-                                )
-                                .clipShape(Circle())
-                        }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Palette.background.opacity(0.9))
 
-                    // ─── Контент режима ───────────────────────────
-                    Group {
-                        switch mode {
-                        case .microscope: MicroscopeView()
-                        case .exam:       ExamView()
-                        case .classifier: ClassifierView()
-                        case .petri:      PetriDishView()
-                        }
+                    Spacer()
+
+                    // Меню
+                    Button {
+                        showMenu = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(Palette.green)
+                            .frame(width: 32, height: 32)
+                            .background(Palette.surface)
+                            .overlay(Circle().stroke(Palette.stroke, lineWidth: 1))
+                            .clipShape(Circle())
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(Palette.background.opacity(0.9))
+
+                Divider().overlay(Palette.stroke)
+
+                // ─── Контент режима ─────────────────────────────
+                Group {
+                    switch mode {
+                    case .microscope: MicroscopeView()
+                    case .exam:       ExamView()
+                    case .classifier: ClassifierView()
+                    case .petri:      PetriDishView()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .navigationBarHidden(true)
         }
         .sheet(isPresented: $showMenu) {
             MenuView()
@@ -99,18 +114,17 @@ private struct ModeTab: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 Image(systemName: mode.icon)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 10, weight: .semibold))
                 Text(mode.rawValue)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
             }
             .foregroundColor(isActive ? Palette.textPrimary : Palette.textSecondary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
             .background(
-                Capsule()
-                    .fill(isActive ? Palette.green.opacity(0.22) : Palette.surface)
+                Capsule().fill(isActive ? Palette.green.opacity(0.22) : Palette.surface)
             )
             .overlay(
                 Capsule().stroke(
